@@ -6,7 +6,7 @@ import { doc, updateDoc, arrayRemove } from "firebase/firestore";
 const Task = ({ text, index, taskItems, setTaskItems, document }) => {
   const [complete, setComplete] = useState(false);
 
-  const updateRef = doc(db, "users", document?.id);
+  const updateRef = doc(db, "users", auth.currentUser?.uid);
 
   const removeTask = (index) => {
     let itemsCopy = [...taskItems];

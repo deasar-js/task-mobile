@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button, Input } from "@rneui/themed";
 import { updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase-config";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 
 const NameScreen = ({ navigation }) => {
   const [name, setName] = useState(null);
@@ -15,10 +15,15 @@ const NameScreen = ({ navigation }) => {
       await updateProfile(auth.currentUser, {
         displayName: name,
       });
-      await addDoc(usersCollectionRef, {
+      // await addDoc(usersCollectionRef, {
+      //   displayName: name,
+      //   uid: auth.currentUser?.uid,
+      //   tasks: [],
+      // });
+      await setDoc(doc(db, "users", auth.currentUser?.uid), {
         displayName: name,
-        uid: auth.currentUser?.uid,
         tasks: [],
+        uid: auth.currentUser?.uid,
       });
       navigation.navigate("Home");
       setName("");

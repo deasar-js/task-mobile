@@ -12,7 +12,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase-config";
 import {
   doc,
-  getDocs,
+  getDoc,
   collection,
   updateDoc,
   arrayUnion,
@@ -24,41 +24,32 @@ import Task from "../components/Task";
 const HomeScreen = ({ navigation, user }) => {
   const [task, setTask] = useState();
   const [taskItems, setTaskItems] = useState([]);
-  const [users, setUsers] = useState([]);
   const [document, setDocument] = useState();
 
-  const usersCollectionRef = collection(db, "users");
+  const docRef = doc(db, "users", auth.currentUser?.uid);
+  const getTasks = async () => {
+    const docSnap = await getDoc(docRef);
+    console.log(docSnap.data(), "docSnap");
+    setDocument(docSnap.data());
+  };
 
   useEffect(() => {
-    const getUsers = async () => {
-      const data = await getDocs(usersCollectionRef);
-
-      setUsers(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    };
-    getUsers();
-    const usersCopy = [...users];
-
-    const arr = usersCopy.filter((profile) => {
-      return profile.uid === auth.currentUser?.uid;
+    getTasks().then((res) => {
+      console.log(document.tasks, "tasks");
+      setTaskItems(document?.tasks);
     });
+  }, [user, docRef]);
 
-    const currentUser = arr[0];
-    setDocument(currentUser);
-    const userId = currentUser?.id;
-    setTaskItems(currentUser?.tasks);
-  }, []);
-
-  const handleAddTask = () => {
-    console.log(taskItems.length);
-    if (taskItems?.length < 5) {
+  const handleAddTask = async (e) => {
+    if (taskItems.length < 5) {
       Keyboard.dismiss();
       const taskCopy = task;
       setTaskItems((currItems) => [...currItems, task]);
       console.log(taskItems, "task items");
       setTask(null);
 
-      const updateRef = doc(db, "users", document?.id);
-      updateDoc(updateRef, {
+      const updateRef = doc(db, "users", auth.currentUser?.uid);
+      await updateDoc(updateRef, {
         tasks: arrayUnion(taskCopy),
       });
     } else {
@@ -85,7 +76,7 @@ const HomeScreen = ({ navigation, user }) => {
 
         <View style={styles.items}>
           {/* This is where the tasks will go */}
-          {taskItems?.map((item, index) => {
+          {taskItems.map((item, index) => {
             return (
               <Task
                 key={index}
