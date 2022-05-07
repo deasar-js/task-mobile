@@ -24,23 +24,21 @@ import Task from "../components/Task";
 const HomeScreen = ({ navigation, user }) => {
   const [task, setTask] = useState();
   const [taskItems, setTaskItems] = useState([]);
-  const [document, setDocument] = useState();
+  // const [document, setDocument] = useState();
 
   const docRef = doc(db, "users", auth.currentUser?.uid);
-  const getTasks = async () => {
-    const docSnap = await getDoc(docRef);
-    console.log(docSnap.data(), "docSnap");
-    setDocument(docSnap.data());
-  };
+  console.log(auth.currentUser?.uid);
 
   useEffect(() => {
-    getTasks().then((res) => {
-      console.log(document.tasks, "tasks");
-      setTaskItems(document?.tasks);
-    });
-  }, [user, docRef]);
+    const getTasks = async () => {
+      const docSnap = await getDoc(docRef);
+      console.log(docSnap.data().tasks, "docSnap");
+      setTaskItems(docSnap.data().tasks);
+    };
+    getTasks();
+  }, []);
 
-  const handleAddTask = async (e) => {
+  const handleAddTask = async () => {
     if (taskItems.length < 5) {
       Keyboard.dismiss();
       const taskCopy = task;
@@ -50,7 +48,7 @@ const HomeScreen = ({ navigation, user }) => {
 
       const updateRef = doc(db, "users", auth.currentUser?.uid);
       await updateDoc(updateRef, {
-        tasks: arrayUnion(taskCopy),
+        tasks: arrayUnion({ title: taskCopy, isComplete: false }),
       });
     } else {
       alert("You have 5 tasks already");
@@ -76,15 +74,15 @@ const HomeScreen = ({ navigation, user }) => {
 
         <View style={styles.items}>
           {/* This is where the tasks will go */}
-          {taskItems.map((item, index) => {
+          {taskItems?.map((item, index) => {
+            console.log(item.title);
             return (
               <Task
                 key={index}
-                text={item}
+                text={item.title || item}
                 index={index}
                 taskItems={taskItems}
                 setTaskItems={setTaskItems}
-                document={document}
               />
             );
           })}

@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, updateDoc, arrayRemove } from "firebase/firestore";
 
-const Task = ({ text, index, taskItems, setTaskItems, document }) => {
+const Task = ({ text, index, taskItems, setTaskItems }) => {
   const [complete, setComplete] = useState(false);
 
   const updateRef = doc(db, "users", auth.currentUser?.uid);
 
-  const removeTask = (index) => {
+  const removeTask = async (index) => {
     let itemsCopy = [...taskItems];
     itemsCopy.splice(index, 1);
     setTaskItems(itemsCopy);
@@ -16,13 +16,16 @@ const Task = ({ text, index, taskItems, setTaskItems, document }) => {
     // updateDoc(updateRef, {
     //   tasks: arrayRemove([index]),
     // });
-    updateDoc(updateRef, {
+    await updateDoc(updateRef, {
       tasks: itemsCopy,
     });
   };
 
-  const completeTask = (index) => {
+  const handleCompleteTask = (index) => {
     setComplete(!complete);
+    updateDoc(updateRef, {
+      tasks: arrayRemove([index]),
+    });
   };
 
   return (
@@ -30,7 +33,7 @@ const Task = ({ text, index, taskItems, setTaskItems, document }) => {
       <View style={styles.itemLeft}>
         <TouchableOpacity
           style={styles.square}
-          onPress={() => completeTask(index)}
+          onPress={() => handleCompleteTask(index)}
         ></TouchableOpacity>
         <Text style={!complete ? styles.itemText : styles.completedText}>
           {text}
