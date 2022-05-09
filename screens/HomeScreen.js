@@ -17,36 +17,37 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
+import notes from "../assets/empty.png";
 
-import { Icon } from "@rneui/themed";
+import { Icon, Image } from "@rneui/themed";
 import Task from "../components/Task";
 
 const HomeScreen = ({ navigation, user }) => {
-  const [task, setTask] = useState();
+  const [task, setTask] = useState("");
   const [taskItems, setTaskItems] = useState([]);
-  const [document, setDocument] = useState();
+  // const [document, setDocument] = useState();
 
   const docRef = doc(db, "users", auth.currentUser?.uid);
-  const getTasks = async () => {
-    const docSnap = await getDoc(docRef);
-    console.log(docSnap.data(), "docSnap");
-    setDocument(docSnap.data());
-  };
+  console.log(auth.currentUser?.uid);
 
   useEffect(() => {
-    getTasks().then((res) => {
-      console.log(document.tasks, "tasks");
-      setTaskItems(document?.tasks);
-    });
-  }, [user, docRef]);
+    const getTasks = async () => {
+      const docSnap = await getDoc(docRef);
+      console.log(docSnap.data().tasks, "docSnap");
+      setTaskItems(docSnap.data().tasks);
+    };
+    getTasks();
+  }, []);
 
-  const handleAddTask = async (e) => {
-    if (taskItems.length < 5) {
+  const handleAddTask = async () => {
+    if (task.length < 1) {
+      alert("Task is empty");
+    } else if (taskItems.length < 5 && task.length > 0) {
       Keyboard.dismiss();
       const taskCopy = task;
       setTaskItems((currItems) => [...currItems, task]);
       console.log(taskItems, "task items");
-      setTask(null);
+      setTask("");
 
       const updateRef = doc(db, "users", auth.currentUser?.uid);
       await updateDoc(updateRef, {
@@ -76,18 +77,27 @@ const HomeScreen = ({ navigation, user }) => {
 
         <View style={styles.items}>
           {/* This is where the tasks will go */}
-          {taskItems.map((item, index) => {
-            return (
-              <Task
-                key={index}
-                text={item}
-                index={index}
-                taskItems={taskItems}
-                setTaskItems={setTaskItems}
-                document={document}
-              />
-            );
-          })}
+          {taskItems.length < 1 ? (
+            <View style={styles.tasksWrapper}>
+              <Text style={styles.heading}>Add your first task of the day</Text>
+              <Image source={notes} style={styles.image} />
+            </View>
+          ) : (
+            <>
+              {taskItems?.map((item, index) => {
+                console.log(item);
+                return (
+                  <Task
+                    key={index}
+                    text={item}
+                    index={index}
+                    taskItems={taskItems}
+                    setTaskItems={setTaskItems}
+                  />
+                );
+              })}
+            </>
+          )}
         </View>
       </View>
 
@@ -163,5 +173,11 @@ const styles = StyleSheet.create({
   },
   items: {
     marginTop: 30,
+  },
+  image: {
+    width: 300,
+    height: 300,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
