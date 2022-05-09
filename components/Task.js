@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { auth, db } from "../firebase-config";
-import { doc, updateDoc, arrayRemove } from "firebase/firestore";
+import { doc, updateDoc, setDoc } from "firebase/firestore";
 
 const Task = ({ text, index, taskItems, setTaskItems }) => {
   const [complete, setComplete] = useState(false);
@@ -12,20 +12,13 @@ const Task = ({ text, index, taskItems, setTaskItems }) => {
     let itemsCopy = [...taskItems];
     itemsCopy.splice(index, 1);
     setTaskItems(itemsCopy);
-
-    // updateDoc(updateRef, {
-    //   tasks: arrayRemove([index]),
-    // });
     await updateDoc(updateRef, {
       tasks: itemsCopy,
     });
   };
 
-  const handleCompleteTask = (index) => {
+  const handleCompleteTask = async (index) => {
     setComplete(!complete);
-    updateDoc(updateRef, {
-      tasks: arrayRemove([index]),
-    });
   };
 
   return (
